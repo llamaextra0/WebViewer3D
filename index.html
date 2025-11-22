@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Babylon.js Cube – NO Extension</title>
+  <script src="https://cdn.babylonjs.com/babylon.js"></script>
+  <style>
+    html,body{margin:0;padding:0;overflow:hidden;background:#111}
+  </style>
+</head>
+<body>
+<canvas id="renderCanvas" style="width:100%;height:100%"></canvas>
+
+<script>
+  const canvas = document.getElementById("renderCanvas");
+  const engine = new BABYLON.Engine(canvas, true);
+
+  const createScene = () => {
+    const scene = new BABYLON.Scene(engine);
+    scene.clearColor = new BABYLON.Color4(0.1,0.1,0.2,1);
+
+    const camera = new BABYLON.ArcRotateCamera("cam", -Math.PI/2, Math.PI/2.5, 15, BABYLON.Vector3.Zero(), scene);
+    camera.attachControl(canvas, true);
+
+    const cube = BABYLON.MeshBuilder.CreateBox("cube", {size:4}, scene);
+    const mat = new BABYLON.StandardMaterial("mat", scene);
+    cube.material = mat;
+    mat.diffuseColor = new BABYLON.Color3(1,0,0); // start red
+
+    // SPIN
+    scene.registerBeforeRender(() => {
+      cube.rotation.y += 0.01;
+    });
+
+    // RECEIVE MESSAGE FROM THUNKABLE (NO EXTENSION!)
+    window.addEventListener("message", (event) => {
+      const msg = event.data;
+      console.log("Received:", msg);
+
+      if (msg === "red")    mat.diffuseColor = new BABYLON.Color3(1,0,0);
+      if (msg === "green")  mat.diffuseColor = new BABYLON.Color3(0,1,0);
+      if (msg === "blue")   mat.diffuseColor = new BABYLON.Color3(0,0,1);
+      if (msg === "yellow") mat.diffuseColor = new BABYLON.Color3(1,1,0);
+      if (msg === "random") mat.diffuseColor = BABYLON.Color3.Random();
+    });
+
+    return scene;
+  };
+
+  const scene = createScene();
+  engine.runRenderLoop(() => scene.render());
+  window.addEventListener("resize", () => engine.resize());
+
+  // Optional: tell Thunkable we're ready
+  setTimeout(() => window.parent.postMessage("cube-ready", "*"), 1000);
+</script>
+</body>
+</html>
